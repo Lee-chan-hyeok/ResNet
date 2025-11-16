@@ -1,0 +1,1 @@
+docker run -it --rm --shm-size=2g -v ./:/workspace --name resnet_chlee resnet_chlee /bin/bash
