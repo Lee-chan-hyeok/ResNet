@@ -7,4 +7,4 @@ torchtext==0.18.0
 torchvision==0.18.0
 tqdm==4.66.1
 opencv-python==4.10.0.84
-matplotlib==3.7.2`
+matplotlib==3.7.2
