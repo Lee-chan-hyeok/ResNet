@@ -2,8 +2,8 @@ import os
 import random
 import shutil
 
-data_path = "data"
-test_set_dir = "test_data"
+data_path = "data/train_data"
+test_set_dir = "data/test_data"
 test_ratio = 0.2
 
 os.makedirs(test_set_dir, exist_ok=True)
