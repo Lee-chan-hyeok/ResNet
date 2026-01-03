@@ -1,0 +1,1 @@
+docker exec -it resnet_chlee /bin/bash

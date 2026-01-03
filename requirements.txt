@@ -1,10 +1,15 @@
-Pillow==9.3.0
-# torch==2.3.0+cu118
-torch==2.3.0
-torchaudio==2.3.0
-torchdata==0.7.1
-torchtext==0.18.0
-torchvision==0.18.0
+torch==1.10.1+cu111
+torchvision==0.11.2+cu111
+torchaudio==0.10.1+cu111
+torchinfo==1.8.0
+
+torchtext==0.11.1
+# torchdata==0.3.0 
+
 tqdm==4.66.1
 opencv-python==4.10.0.84
-matplotlib==3.7.2
+matplotlib==3.7.4
+Pillow==9.3.0
+
+notebook==6.5.7
+jupyterlab==3.6.8

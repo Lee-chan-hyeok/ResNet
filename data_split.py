@@ -3,7 +3,7 @@ import random
 import shutil
 
 data_path = "data/train_data"
-test_set_dir = "data/test_data"
+test_set_dir = "data/sample_data"
 test_ratio = 0.2
 
 os.makedirs(test_set_dir, exist_ok=True)
@@ -35,6 +35,6 @@ for cls in class_folder:
         src = os.path.join(cls_path, img_name)
         dst = os.path.join(test_cls_path, img_name)
 
-        shutil.move(src, dst)
+        shutil.copy(src, dst)
 
     print(f"{cls}: # of img: {num_img}, # of test set: {num_test}")

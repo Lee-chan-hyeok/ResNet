@@ -1,23 +1,32 @@
-FROM python:3.10-slim
+FROM nvidia/cuda:11.2.2-cudnn8-runtime-ubuntu20.04
 
-# 시스템 업데이트 + 필요한 패키지 설치
+# 🔧 [추가] apt-get 설치 중 사용자 입력(타임존 질문) 방지
+ENV DEBIAN_FRONTEND=noninteractive
+
+# 🔧 [추가] tzdata가 물어보지 않도록 타임존 명시
+ENV TZ=Asia/Seoul
+
 RUN apt-get update && apt-get install -y \
+    tzdata \
+    ca-certificates \
+    python3 \
+    python3-pip \
+    python3-dev \
     build-essential \
     git \
-    libopencv-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# 작업 디렉토리 설정
+RUN ln -s /usr/bin/python3 /usr/bin/python
+
 WORKDIR /workspace
 
-# Python 패키지 버전 고정
 COPY requirements.txt .
 
-# pip 최신화 및 패키지 설치
-RUN pip install --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+RUN pip install --upgrade pip
 
-# 소스 코드 복사
+RUN pip install --no-cache-dir -r requirements.txt \
+    --extra-index-url https://download.pytorch.org/whl/cu111
+
 COPY . .
 
-CMD ["python3"]
+CMD ["bash"]
