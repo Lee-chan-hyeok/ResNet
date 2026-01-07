@@ -4,11 +4,12 @@ from dataset import ResNetDataset
 from torchvision import transforms
 from torch.utils.data import random_split, DataLoader
 from tqdm import tqdm
-import matplotlib.pyplot as plt
 
+import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
 import os
+import logging
 
 from utils import save_loss_accuracy_graph, save_lr_graph
 
@@ -92,13 +93,25 @@ lr_list = []
 # loss, acc관련
 train_loss_list, valid_loss_list = [], []
 train_acc_list, valid_acc_list = [], []
-graph_save_path = "checkpoint/v3"
+checkpoint_save_path = "checkpoint/test용"
+
+os.makedirs(checkpoint_save_path, exist_ok=True)
+
+logging.basicConfig(
+    filename=os.path.join(checkpoint_save_path, "log.txt"),
+    filemode="w",
+    level=logging.INFO,
+    format="%(asctime)s | %(message)s"
+)
 
 for epoch in range(total_epochs):
+    logging.info(f"========= Epoch: {epoch+1} =========")
+    model.train()
 
     train_loss = 0.0
-    train_acc = 0.0
-    model.train()
+    train_correct = 0
+    train_total = 0
+
     for data in tqdm(train_loader, desc="train loader"):
         image, label = data
         image, label = image.to(device), label.to(device)
@@ -110,18 +123,28 @@ for epoch in range(total_epochs):
         loss.backward()
         optimizer.step()
 
-        train_loss += loss.item()
-        # accuracy
         pred = out.argmax(dim=1)
-        train_acc += (label == pred).sum().item()
 
-    train_loss /= len(train_loader)
-    train_acc /= len(train_loader)
-    print(f"train_loss: {train_loss}, train_acc: {train_acc}")
+        train_loss += loss.item() * label.shape[0]
+        train_correct += (label == pred).sum().item()
+        train_total += label.shape[0]
+
+    train_loss /= train_total
+    train_acc = train_correct / train_total
+    train_top1_error = 1 - train_acc
+    # print(f"train_loss: {train_loss}\n train_acc: {train_acc}\n train_top1_error: {train_top1_error}\n ")
+    # logging.info(f"train_loss: {train_loss}\n train_acc: {train_acc}\n train_top1_error: {train_top1_error}\n ")
+    logging.info(
+        f"Train Loss : {train_loss:.4f} | "
+        f"Train Acc : {train_acc:.4f} | "
+        f"Train Top-1 Error : {train_top1_error:.4f} | "
+    )
 
 
     valid_loss = 0.0
-    valid_acc = 0.0
+    valid_correct = 0
+    valid_total = 0
+
     model.eval()
     with torch.no_grad():
         for data in tqdm(valid_loader, desc="validation loader"):
@@ -131,16 +154,25 @@ for epoch in range(total_epochs):
             out = model(image)
             loss = loss_fn(out, label)
 
-            valid_loss += loss.item()
-            # accuracy
             pred = out.argmax(dim=1)
-            valid_acc += (label == pred).sum().item()
 
-        valid_loss /= len(valid_loader)
-        valid_acc /= len(valid_loader)
-        print(f"valid_loss: {valid_loss}, valid_acc: {valid_acc}")
+            valid_loss += loss.item() * label.shape[0]
+            valid_correct += (label == pred).sum().item()
+            valid_total += label.shape[0]
 
-    print(f"Complete {epoch+1} epoch !!!")
+        valid_loss /= valid_total
+        valid_acc = valid_correct / valid_total
+        valid_top1_error = 1 - valid_acc
+        # print(f"valid_loss: {valid_loss}\n valid_acc: {valid_acc}\n valid_top1_error: {valid_top1_error}\n ")
+        # logging.info(f"valid_loss: {valid_loss}\n valid_acc: {valid_acc}\n valid_top1_error: {valid_top1_error}\n ")
+        logging.info(
+            f"Valid Loss: {valid_loss:.4f} | "
+            f"Valid Acc: {valid_acc:.4f} | "
+            f"Valid Top-1 Error: {valid_top1_error:.4f} | "
+        )
+
+    # print(f"Complete {epoch+1} epoch !!!")
+    logging.info(f"Complete {epoch+1} epoch !!!")
 
     # lr 관련
     current_lr = optimizer.param_groups[0]['lr']
@@ -158,22 +190,24 @@ for epoch in range(total_epochs):
         valid_loss_list,
         train_acc_list,
         valid_acc_list,
-        graph_save_path
+        checkpoint_save_path
     )
     
     save_lr_graph(
         lr_list,
-        graph_save_path
+        checkpoint_save_path
     )
 
     # early stopping & save best model (accuracy 기준)
     if valid_acc > best_acc:
         best_acc = valid_acc
         patience = 0
-        torch.save(model.state_dict(), f"checkpoint/{epoch+1}epoch_best.pth")
-        print(f"### save best model ###")
+        torch.save(model.state_dict(), os.path.join(checkpoint_save_path, f"{epoch+1}epoch_best.pth"))
+        # print(f"### save best model ###")
+        logging.info(f"### save best model ###")
     else:
         patience += 1
         if patience > early_stopping:
-            print(f"### Early stop! ###")
+            # print(f"### Early stop! ###")
+            logging.info(f"### Early stop! ###")
             break
