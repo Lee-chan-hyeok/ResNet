@@ -6,10 +6,15 @@ from torch.utils.data import random_split, DataLoader
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 
+# For f1-score
+from sklearn.metrics import f1_score
+
 import torch
 import torch.nn as nn
 import os
 
+from PIL import ImageFile
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -20,7 +25,7 @@ model_path = torch.load("checkpoint/v3/77epoch_best.pth", map_location=device)
 model.load_state_dict(model_path)
 
 # --------- config ---------
-data_path = "data/sample_data"
+data_path = "data/test_data"
 batch_size = 64
 
 mean=[0.485, 0.456, 0.406]
@@ -49,6 +54,10 @@ correct = 0
 total = 0
 test_loss = 0.0
 
+# for f1-score
+all_preds = []
+all_labels = []
+
 model.eval()
 with torch.no_grad():
     for data in tqdm(test_loader, desc="Test loader"):
@@ -65,9 +74,19 @@ with torch.no_grad():
         
         total += label.shape[0]  # label 전체 개수
 
+        # For f1-score
+        all_preds.extend(pred.cpu().numpy())
+        all_labels.extend(label.cpu().numpy())
+
     test_loss /= total
     test_acc = correct / total
     top1_error = 1 - test_acc
 
-    print(f"test_loss: {test_loss:.2f}, test_acc: {test_acc:.2f}")
+    # Calc f1-score
+    f1 = f1_score(all_labels, all_preds, average='macro')
+
+
+    print(f"test_loss: {test_loss:.4f}, test_acc: {test_acc:.4f}, F1-score: {f1:.4f}")
+
+    #print(f"test_loss: {test_loss:.2f}, test_acc: {test_acc:.2f}")
     print(f"### Top-1 error : {top1_error:.2f}")
