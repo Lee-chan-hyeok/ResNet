@@ -9,12 +9,26 @@ import matplotlib.pyplot as plt
 # For f1-score
 from sklearn.metrics import f1_score
 
+import numpy as np
 import torch
 import torch.nn as nn
 import os
 
 from PIL import ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
+
+
+# def F1Score(y_true, y_pred):
+#     TP = np.sum(y_pred == y_true)
+#     FP = np.sum(y_pred != y_true)
+#     FN = np.sum(y_pred != y_true)
+
+#     precision = TP / (TP + FP + 1e-5)
+#     recall = TP / (TP + FN + 1e-5)
+
+#     f1_score = float(2.0 * precision * recall) / (precision + recall + 1e-5)
+
+#     return f1_score
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -84,9 +98,10 @@ with torch.no_grad():
 
     # Calc f1-score
     f1 = f1_score(all_labels, all_preds, average='macro')
-
+    # custom_f1 = F1Score(all_labels, all_preds)
 
     print(f"test_loss: {test_loss:.4f}, test_acc: {test_acc:.4f}, F1-score: {f1:.4f}")
+    # print(f"Custom F1-score: {custom_f1:.4f}")
 
     #print(f"test_loss: {test_loss:.2f}, test_acc: {test_acc:.2f}")
     print(f"### Top-1 error : {top1_error:.2f}")
